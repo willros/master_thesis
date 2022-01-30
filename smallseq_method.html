@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+seq {font-family:Monaco, "Courier New";
+  font-size:0.9em;
+  text-indent: 2.7em;
+}
+
+align.small {
+    font-family:Monaco, "Courier New";
+    font-size:0.9em;
+    line-height:65%;
+}
+
+align.long {
+  font-family:Monaco, "Courier New";
+  font-size:0.7em;
+  line-height:70%;
+}
+
+s5 {color:#6baed6;}
+s7 {color:#fc9272;}
+p5 {color:#08519c;}
+p7 {color:#a50f15;}
+me {color:#969696;}
+tso {color:#2ca25f;}
+cbc {color:#f768a1;}
+umi {color:#807dba;}
+t7 {color:blue;}
+pe1 {color:#bcbddc;}
+pe2 {color:#9ebcda;}
+w1 {color:#f03b20;}
+h3 {font-family:verdana;}
+
+</style>
+
+<head>
+<title>Small-seq</title>
+</head>
+<body>
+
+<h1><a href="https://www.nature.com/articles/s41596-018-0049-y" target="_blank">Small-seq</a></h1>
+
+<span style="font-family:verdana; font-size:1.1em;"><p>The Small-seq method is based on adapter ligation and enables accurate sequencing at the ends. Interference from 5.8S rRNA is avoided by using a masking olognonucleotide that targets the 3' end of the rRNA. A custom design UMI is introduces to the 5' adapter, which enables precise molecule counting. </p></span>
+
+<br></br>
+
+<h2>Adapter and primer sequences:</h2>
+    
+<seq>
+    
+<p>RA3 3' adapter (DNA). 5' adenylation and 3' cap: 5'- <s7>rApp</s7><pe1>TGGAATTCTCGGGTGCCAAGG</pe1><s7>ddC</s7> -3'</p>
+    
+<p>RA5 5' adapter (RNA). Blocked at 5' with NH2. UMI (8 nt H (A,U,C)), followed by -CA-. Sequencing starts from UMI: 5'- <s7>NH2</s7>-<pe2>rGrUrUrCrArGrArGrUrUrCrUrArCrArGrUrCrCrGrArCrGrArUrC</pe2><umi>[8 nt umi (RNA)]</umi><s7>CrA</s7> -3'</p>
+    
+<p>RTP Reverse transcriptase (RT) primer AND reverse primer in first PCR. Biotin at 5' and rA at 3' end: 5'- <me>biotin</me>-CCTTGGCACCCGAGAATTCC<s7>rA</s7> -3'</p>
+    
+<p>5.8S masking oligo. 3' biotin group which blocks extension: 5' - TCGGCAAGCGACGCTCAGACAGGCGTAGCCCCGGGAGGAACCCGGGGCCGCAAGTGCGTTCGAAGTGTCGATGAT-<me>biotin</me> - 3'</p>
+    
+<p>RP1 Forward PCR primer: 5'- AATGATACGGCGACCACCGAGATCTACACGTTCAGAGTTCTACAGTCCGA -3'</p>
+    
+<p>SRX Index reverse primer (8 nt barcode). Modified from TruSeq small RNA index primers. : 5'- <s7>CAAGCAGAAGACGGCATACGAGAT</s7><s5>[8 nt barcode]</s5><s7>GTGACTGGAGTTCCTTGGCACCCGAGAATTCCA</s7> -3'</p>
+</seq>
+
+
+<br></br>
+
+<h2>Adapter ligation:</h2>
+
+<h3>(1) Anneal 5.8S rRNA mask to prevent ligation of 3' adapter to iterfering rRNA:</h3>
+
+<pre>
+<seq>
+                                    
+                                                   5'- TCGGCAAGCGACGCTCAGACAGGCGTAGCCCCGGGAGGAACCCGGGGCCGCAAGTGCGTTCGAAGTGTCGATGAT-<me>biotin</me> - 3'
+                                                   3'- AGCCGTTCGCTGCGAGTCTGTCCGCATCGGGGCCCTCCTTGGGCCCCGGCGTTCACGCAAGCTTCACAGCTACTAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX -5'(rRNA)
+</seq>
+</pre>
+
+<h3>(2) Ligation of 3' adapter (DNA), which is adenylated at 5' end and blocked at 3' end. Ligation is achieved by T4 RNA ligase 2 truncated. No ATP is needed:</h3>
+
+<pre>
+<seq>
+                                   (smallRNA + 3' adapter) 5'- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX<pe1>TGGAATTCTCGGGTGCCAAGG</pe1><s7>ddC</s7> -3' (ANTAR ATT rApp försvinner????????)
+                                                   
+</seq>
+</pre>
+
+
+<h3>(3) Remove the free 3' adapters by 5' deadenylase to remove adenyl groups and expose the 5' phosphate group. Add primer for RT. RT primer is reverse-complementary to the 3' adapter. Lambda exonuclease is added to digest hybridized 3' adapters and RT primers:</h3>
+
+<pre>
+<seq>
+                                   (smallRNA + 3' adapter) 5'- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX<pe1>TGGAATTCTCGGGTGCCAAGG</pe1><s7>ddC</s7> -3' 
+                                                                                                     3'- <s7>Ar</s7>CCTTAAGAGCCCACGGTTCC-<me>biotin</me> - 5' (RT adapter)
+                                                                                                 
+                                                                                                 
+                                                                                                 
+                 (hybrid 3' and RT (to be digested))               5'- <pe1>TGGAATTCTCGGGTGCCAAGG</pe1><s7>ddC</s7> -3' (3' adapter) 
+                                                                  3'- <s7>Ar</s7>CCTTAAGAGCCCACGGTTCC-<me>biotin</me> - 5' (RT adapter)
+                                                   
+</seq>
+</pre>
+
+
+<h3>(4) Ligation of 5' adapter (RNA) using T4 RNA ligase 1 and ATP. The 5' adapter is blocked at the 5' end and has an OH group at the 3' end. Can not ligate to mRNA due to the 5' cap:</h3>
+
+<pre>
+<seq>
+                                   5'- <s7>NH2</s7>-<pe2>rGrUrUrCrArGrArGrUrUrCrUrArCrArGrUrCrCrGrArCrGrArUrC</pe2><umi>[8 bp umi]</umi><s7>CrA</s7>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX<pe1>TGGAATTCTCGGGTGCCAAGG</pe1><s7>ddC</s7> -3' 
+                                                                                                                                                  3'- <s7>Ar</s7>CCTTAAGAGCCCACGGTTCC-<me>biotin</me> - 5' (RT adapter)
+                                                   
+</seq>
+</pre>
+
+
+
+<h2>Reverse transcription and PCR amplification:</h2>
+
+<h3>(1) Reverse transcription. Note that RT primer has already been added:</h3>
+
+<pre>
+<seq>
+                                   5'- <s7>NH2</s7>-<pe2>GUUCAGAGUUCUACAGUCCGACGAUC</pe2><umi>[8 bp umi]</umi><s7>CA</s7>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX<pe1>TGGAATTCTCGGGTGCCAAGG</pe1><s7>ddC</s7> -3' 
+                                           <pe2>CAAGTCTCAAGATGTCAGGCTGCTAG</pe2><umi>[8 bp umi]</umi><s7>GT</s7>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXACCTTAAGAGCCCACGGTTCC-<me>biotin</me> - 5' 
+                                                   
+</seq>
+</pre>
+
+
+<h3>(2) First round of  PCR ampification. Forward PCR primer added. Leftover RT primer serve as the reverse primer:</h3>
+
+<pre>
+<seq>                             
+                                                                                                                            &lt;------ 3'- CCTTAAGAGCCCACGGTTCC -5' (Left over RT primer)
+                                                  5'- <pe2>GUUCAGAGUUCUACAGUCCGACGAUC</pe2><umi>[8 nt umi]</umi><s7>CA</s7>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX<pe1>TGGAATTCTCGGGTGCCAAGGC</pe1> -3' 
+                                                  3'- <pe2>CAAGTCTCAAGATGTCAGGCTGCTAG</pe2><umi>[8 nt umi]</umi><s7>GT</s7>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXACCTTAAGAGCCCACGGTTCCG -5' 
+                     5'- <w1>AATGATACGGCGACCACCGAGATCTACAC</w1>GTTCAGAGTTCTACAGTCCGA -3'-----&gt;                                                                                                
+                                                   
+</seq>
+</pre>
+
+
+
+<h3>(3) Second round of  PCR ampification. Forward PCR primer added. Index reverse primers are added. Pool library after this step and select for size:</h3>
+
+<pre>
+<seq>                             
+                                                                                                                           &lt;------ 3'- <s7>ACCTTAAGAGCCCACGGTTCCTTGAGGTCAGTG</s7><s5>[8 nt barcode]</s5>TAGAGCATACGGCAGAAGACGAAC -5'          
+                     5'- <w1>AATGATACGGCGACCACCGAGATCTACAC</w1><pe2>GTTCAGAGTTCTACAGTCCGACGATC</pe2><umi>[8 nt umi]</umi><s7>CA</s7>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX<pe1>TGGAATTCTCGGGTGCCAAGGC</pe1> -3'
+                     3'- <w1>TTACTATGCCGCTGGTGGCTCTAGATGTG</w1><pe2>CAAGTCTCAAGATGTCAGGCTGCTAG</pe2><umi>[8 nt umi]</umi><s7>GT</s7>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX<pe1>ACCTTAAGAGCCCACGGTTCCG</pe1> -5'
+                     5'- <w1>AATGATACGGCGACCACCGAGATCTACAC</w1>GTTCAGAGTTCTACAGTCCGA -3'-----&gt;  
+                                                   
+</seq>
+</pre>
+
+<h3>(4) Final library structure. Sequenced on NextSeq:</h3>
+
+<pre>
+<seq>                             
+                                                                                                                             
+        5'- <w1>AATGATACGGCGACCACCGAGATCTACAC</w1><pe2>GTTCAGAGTTCTACAGTCCGACGATC</pe2><umi>HHHHHHHH</umi><s7>CA</s7>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX<cbc>TGGAATTCTCGGGTGCCAAGGAACTCCAGTCAC</cbc><s5>XXXXXXXX</s5><tso>ATCTCGTATGCCGTCTTCTGCTTG</tso> -3'
+        3'- <w1>TTACTATGCCGCTGGTGGCTCTAGATGTG</w1><pe2>CAAGTCTCAAGATGTCAGGCTGCTAG</pe2><umi>HHHHHHHH</umi><s7>GT</s7>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX<cbc>ACCTTAAGAGCCCACGGTTCCTTGAGGTCAGTG</cbc><s5>XXXXXXXX</s5><tso>TAGAGCATACGGCAGAAGACGAAC</tso> -5'      
+                  <w1>Illumina P5</w1>                 <pe2>TruSeq adapter</pe2>         <umi>UMI</umi>                    cDNA                                 <cbc>TruSeq adapter</cbc>             <s5>i7</s5>           <tso>Illumina P7</tso>
+             
+                                                   
+</seq>
+</pre>
+
+
+</body>
+</html>
